@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ElectIQ - Your non-partisan interactive election process assistant.">
+    <title>ElectIQ - Election Process Assistant</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#0F1B2D',
+                        electric: '#3B82F6',
+                        darkNavy: '#0A1320',
+                        lightNavy: '#1A2A44'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F1B2D;
+            color: #FFFFFF;
+        }
+
+        /* Custom Scrollbar for Chat */
+        .chat-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .chat-scroll::-webkit-scrollbar-track {
+            background: #0A1320;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: #1A2A44;
+            border-radius: 4px;
+        }
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background: #3B82F6;
+        }
+
+        /* Hide scrollbar for horizontal lists but keep scrollable */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Markdown Content Styling */
+        .prose p { margin-bottom: 0.75em; }
+        .prose strong { color: #FFFFFF; font-weight: 600; }
+        .prose ul { list-style-type: disc; margin-left: 1.5em; margin-bottom: 0.75em; }
+        .prose ol { list-style-type: decimal; margin-left: 1.5em; margin-bottom: 0.75em; }
+        .prose a { color: #93C5FD; text-decoration: underline; }
+        .prose a:hover, .prose a:focus { color: #60A5FA; }
+        .prose h1, .prose h2, .prose h3 { font-weight: 600; margin-top: 1em; margin-bottom: 0.5em; color: #FFFFFF; }
+
+        /* Stepper Connector Line */
+        .step-connector {
+            position: absolute;
+            left: 1.125rem; /* 18px to center with the 36px circle */
+            top: 2.25rem;
+            bottom: -0.5rem;
+            width: 2px;
+            background-color: #1A2A44;
+            z-index: 0;
+        }
+        .step-item:last-child .step-connector {
+            display: none;
+        }
+
+        /* Typing Indicator Animation */
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-3px); opacity: 1; }
+        }
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out;
+            border-radius: 50%;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="bg-darkNavy border-b border-lightNavy py-4 px-4 md:px-8 flex items-center justify-between shadow-md" role="banner">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-electric rounded-lg flex items-center justify-center shadow-[0_0_12px_rgba(59,130,246,0.6)]" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-bold tracking-wide text-white">Elect<span class="text-electric">IQ</span></h1>
+        </div>
+        <p class="text-sm text-gray-300 hidden md:block">Interactive Election Process Assistant</p>
+    </header>
+
+    <!-- Main Application Area -->
+    <main class="flex-1 flex flex-col md:flex-row overflow-hidden" role="main">
+        
+        <!-- Sidebar / Election Journey Stepper -->
+        <aside class="w-full md:w-1/3 lg:w-1/4 bg-navy border-r border-lightNavy p-6 overflow-y-auto" aria-label="Election Journey Guide">
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-white mb-1">The Election Journey</h2>
+                <p class="text-sm text-gray-400">Select a step to learn more.</p>
+            </div>
+
+            <nav aria-label="Election stages navigation">
+                <ul class="space-y-0 relative list-none m-0 p-0">
+                    <!-- Step 1 -->
+                    <li class="step-item relative pb-6 group">
+                        <div class="step-connector" aria-hidden="true"></div>
+                        <button onclick="sendQuickQuery('Tell me about the Voter Registration process.')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about Voter Registration">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">1</span>
+                            </div>
+                            <div class="mt-1">
+                                <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Voter Registration</h3>
+                                <p class="text-sm text-gray-400 mt-1">Eligibility and signing up</p>
+                            </div>
+                        </button>
+                    </li>
+
+                    <!-- Step 2 -->
+                    <li class="step-item relative pb-6 group">
+                        <div class="step-connector" aria-hidden="true"></div>
+                        <button onclick="sendQuickQuery('How do Primary Elections work?')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about Primaries and Caucuses">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">2</span>
+                            </div>
+                            <div class="mt-1">
+                                <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Primaries & Caucuses</h3>
+                                <p class="text-sm text-gray-400 mt-1">Selecting party candidates</p>
+                            </div>
+                        </button>
+                    </li>
+
+                    <!-- Step 3 -->
+                    <li class="step-item relative pb-6 group">
+                        <div class="step-connector" aria-hidden="true"></div>
+                        <button onclick="sendQuickQuery('Explain the General Election process.')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about the General Election">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">3</span>
+                            </div>
+                            <div class="mt-1">
+                                <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">General Election</h3>
+                                <p class="text-sm text-gray-400 mt-1">Voting for the final candidates</p>
+                            </div>
+                        </button>
+                    </li>
+
+                    <!-- Step 4 -->
+                    <li class="step-item relative pb-6 group">
+                        <div class="step-connector" aria-hidden="true"></div>
+                        <button onclick="sendQuickQuery('How are election results counted and certified?')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about Results and Certification">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">4</span>
+                            </div>
+                            <div class="mt-1">
+                                <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Results & Certification</h3>
+                                <p class="text-sm text-gray-400 mt-1">Counting votes and Electoral College</p>
+                            </div>
+                        </button>
+                    </li>
+
+                    <!-- Step 5 -->
+                    <li class="step-item relative group">
+                        <div class="step-connector" aria-hidden="true"></div>
+                        <button onclick="sendQuickQuery('What happens during the Inauguration?')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about the Inauguration">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">5</span>
+                            </div>
+                            <div class="mt-1">
+                                <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Inauguration</h3>
+                                <p class="text-sm text-gray-400 mt-1">Taking the oath of office</p>
+                            </div>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Chat Interface Area -->
+        <section class="flex-1 flex flex-col bg-darkNavy/50 h-full relative" aria-label="Chat Interface">
+            
+            <!-- Chat Messages Container -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 chat-scroll space-y-6" aria-live="polite" aria-atomic="false">
+                <!-- Welcome Message (Injected via JS or hardcoded) -->
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-electric flex items-center justify-center mr-4 shadow-sm" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="bg-lightNavy text-white rounded-2xl rounded-tl-none px-5 py-4 max-w-[90%] md:max-w-[80%] shadow-lg prose prose-invert">
+                        <p>Welcome to <strong>ElectIQ</strong>! I'm your non-partisan election process assistant. How can I help you understand the democratic process today?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interaction Area: Quick Actions & Input -->
+            <div class="bg-navy border-t border-lightNavy p-4 z-10 relative">
+                
+                <!-- Quick Actions Carousel -->
+                <nav aria-label="Quick question shortcuts" class="mb-3">
+                    <div class="flex gap-2 overflow-x-auto pb-2 chat-scroll scroll-smooth hide-scrollbar">
+                        <button onclick="sendQuickQuery('How do I register to vote?')" class="whitespace-nowrap px-4 py-2 bg-lightNavy hover:bg-electric text-gray-200 hover:text-white text-sm font-medium rounded-full transition-colors border border-gray-600 hover:border-electric focus:outline-none focus:ring-2 focus:ring-electric" aria-label="Ask: How do I register to vote?">
+                            How do I register to vote?
+                        </button>
+                        <button onclick="sendQuickQuery('What is the Electoral College?')" class="whitespace-nowrap px-4 py-2 bg-lightNavy hover:bg-electric text-gray-200 hover:text-white text-sm font-medium rounded-full transition-colors border border-gray-600 hover:border-electric focus:outline-none focus:ring-2 focus:ring-electric" aria-label="Ask: What is the Electoral College?">
+                            What is the Electoral College?
+                        </button>
+                        <button onclick="sendQuickQuery('When is Election Day?')" class="whitespace-nowrap px-4 py-2 bg-lightNavy hover:bg-electric text-gray-200 hover:text-white text-sm font-medium rounded-full transition-colors border border-gray-600 hover:border-electric focus:outline-none focus:ring-2 focus:ring-electric" aria-label="Ask: When is Election Day?">
+                            When is Election Day?
+                        </button>
+                        <button onclick="sendQuickQuery('How are votes counted?')" class="whitespace-nowrap px-4 py-2 bg-lightNavy hover:bg-electric text-gray-200 hover:text-white text-sm font-medium rounded-full transition-colors border border-gray-600 hover:border-electric focus:outline-none focus:ring-2 focus:ring-electric" aria-label="Ask: How are votes counted?">
+                            How are votes counted?
+                        </button>
+                    </div>
+                </nav>
+
+                <!-- Chat Input Form -->
+                <form id="chat-form" class="flex items-end gap-3" aria-label="Chat input form">
+                    <div class="relative flex-1">
+                        <label for="chat-input" class="sr-only">Type your question</label>
+                        <textarea id="chat-input" rows="1" class="w-full bg-darkNavy border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-electric focus:ring-2 focus:ring-electric resize-none block" placeholder="Ask a question about the election process..." aria-multiline="true"></textarea>
+                    </div>
+                    <button type="submit" id="send-btn" class="bg-electric hover:bg-blue-600 text-white rounded-xl p-3 h-[48px] w-[48px] flex items-center justify-center transition-colors shadow-md flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-navy focus:ring-electric" aria-label="Send message">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform rotate-90" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Application Logic -->
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        
+        let isProcessing = false;
+
+        // Auto-resize textarea logic
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            const newHeight = Math.min(this.scrollHeight, 150); // Cap at 150px
+            this.style.height = newHeight + 'px';
+        });
+
+        // Submit form on Enter (allow Shift+Enter for new lines)
+        chatInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (this.value.trim() !== '' && !isProcessing) {
+                    chatForm.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (isProcessing) return;
+
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Clear input immediately for better UX
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            await handleMessageSubmission(message);
+        });
+
+        function sendQuickQuery(query) {
+            if (isProcessing) return;
+            handleMessageSubmission(query);
+        }
+
+        async function handleMessageSubmission(message) {
+            isProcessing = true;
+            
+            // Render user message
+            appendUserMessage(message);
+
+            // Render animated typing indicator
+            const loadingId = appendLoadingMessage();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                
+                // Remove typing indicator
+                const loadingEl = document.getElementById(loadingId);
+                if (loadingEl) loadingEl.remove();
+
+                if (response.ok) {
+                    appendBotMessage(data.response);
+                } else {
+                    appendBotMessage(`**Error:** ${data.error || 'Something went wrong processing your request.'}`);
+                }
+            } catch (error) {
+                const loadingEl = document.getElementById(loadingId);
+                if (loadingEl) loadingEl.remove();
+                
+                appendBotMessage(`**Error:** Network error or unable to connect to the server.`);
+                console.error('API Error:', error);
+            } finally {
+                isProcessing = false;
+                // Return focus to input for continuous chatting
+                chatInput.focus();
+            }
+        }
+
+        function appendUserMessage(text) {
+            const msgContainer = document.createElement('div');
+            msgContainer.className = 'flex items-start justify-end w-full';
+            
+            // Encode basic HTML to prevent injection since we inject text safely
+            const safeText = escapeHTML(text);
+            
+            msgContainer.innerHTML = `
+                <div class="bg-gray-700 text-white rounded-2xl rounded-tr-none px-5 py-3 max-w-[90%] md:max-w-[75%] shadow-md whitespace-pre-wrap break-words" role="log" aria-label="Your message">
+                    ${safeText}
+                </div>
+            `;
+            chatMessages.appendChild(msgContainer);
+            scrollToBottom();
+        }
+
+        function appendBotMessage(markdownText) {
+            const msgContainer = document.createElement('div');
+            msgContainer.className = 'flex items-start w-full';
+            
+            // Parse Markdown safely
+            const htmlContent = marked.parse(markdownText);
+            
+            msgContainer.innerHTML = `
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-electric flex items-center justify-center mr-4 mt-1 shadow-sm" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="bg-lightNavy text-white rounded-2xl rounded-tl-none px-5 py-4 max-w-[90%] md:max-w-[80%] shadow-lg prose prose-invert w-full overflow-hidden break-words" role="log" aria-label="ElectIQ Response">
+                    ${htmlContent}
+                </div>
+            `;
+            chatMessages.appendChild(msgContainer);
+            scrollToBottom();
+        }
+
+        function appendLoadingMessage() {
+            const id = 'loading-' + Date.now();
+            const msgContainer = document.createElement('div');
+            msgContainer.id = id;
+            msgContainer.className = 'flex items-start w-full';
+            msgContainer.setAttribute('aria-live', 'polite');
+            
+            msgContainer.innerHTML = `
+                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-electric flex items-center justify-center mr-4 mt-1 shadow-sm opacity-80" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="bg-lightNavy text-white rounded-2xl rounded-tl-none px-5 py-4 shadow-lg flex items-center space-x-2 h-[52px]" aria-label="ElectIQ is typing">
+                    <div class="w-2.5 h-2.5 bg-gray-400 typing-dot"></div>
+                    <div class="w-2.5 h-2.5 bg-gray-400 typing-dot"></div>
+                    <div class="w-2.5 h-2.5 bg-gray-400 typing-dot"></div>
+                    <span class="sr-only">Typing response...</span>
+                </div>
+            `;
+            chatMessages.appendChild(msgContainer);
+            scrollToBottom();
+            return id;
+        }
+
+        function scrollToBottom() {
+            chatMessages.scrollTo({
+                top: chatMessages.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag]));
+        }
+    </script>
+</body>
+</html>
