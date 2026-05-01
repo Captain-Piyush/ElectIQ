@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="ElectIQ - Your non-partisan interactive election process assistant.">
+    <meta name="description" content="ElectIQ is an interactive, non-partisan AI assistant helping citizens learn about the democratic process, voting, elections, and the Electoral College.">
     <title>ElectIQ - Election Process Assistant</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗳️</text></svg>">
     
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -40,6 +43,9 @@
         }
 
         /* Custom Scrollbar for Chat */
+        .chat-scroll {
+            scroll-behavior: smooth;
+        }
         .chat-scroll::-webkit-scrollbar {
             width: 8px;
         }
@@ -98,9 +104,18 @@
         .typing-dot:nth-child(1) { animation-delay: 0s; }
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        .ai-message-container:focus {
+            outline: 2px solid #3B82F6;
+            outline-offset: 2px;
+            border-radius: 1rem;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
+    <!-- Skip to main content link for keyboard users -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 focus:z-50 focus:p-4 focus:bg-electric focus:text-white font-semibold">Skip to main content</a>
+
     <!-- Header -->
     <header class="bg-darkNavy border-b border-lightNavy py-4 px-4 md:px-8 flex items-center justify-between shadow-md" role="banner">
         <div class="flex items-center space-x-3">
@@ -111,89 +126,114 @@
             </div>
             <h1 class="text-2xl font-bold tracking-wide text-white">Elect<span class="text-electric">IQ</span></h1>
         </div>
-        <p class="text-sm text-gray-300 hidden md:block">Interactive Election Process Assistant</p>
+        <div class="flex items-center space-x-4">
+            <p class="text-sm text-gray-300 hidden md:block">Interactive Election Process Assistant</p>
+            <button onclick="clearChat()" class="text-sm px-4 py-2 border border-gray-500 rounded-md text-gray-300 hover:text-white hover:border-white hover:bg-lightNavy transition-colors focus:outline-none focus:ring-2 focus:ring-electric" aria-label="Clear Chat History">
+                Clear Chat
+            </button>
+        </div>
     </header>
 
     <!-- Main Application Area -->
-    <main class="flex-1 flex flex-col md:flex-row overflow-hidden" role="main">
+    <main id="main-content" class="flex-1 flex flex-col md:flex-row overflow-hidden focus:outline-none" role="main" tabindex="-1">
         
         <!-- Sidebar / Election Journey Stepper -->
         <aside class="w-full md:w-1/3 lg:w-1/4 bg-navy border-r border-lightNavy p-6 overflow-y-auto" aria-label="Election Journey Guide">
             <div class="mb-6">
                 <h2 class="text-lg font-semibold text-white mb-1">The Election Journey</h2>
-                <p class="text-sm text-gray-400">Select a step to learn more.</p>
+                <p class="text-sm text-gray-300">Select a step to learn more.</p>
             </div>
 
             <nav aria-label="Election stages navigation">
                 <ul class="space-y-0 relative list-none m-0 p-0">
                     <!-- Step 1 -->
-                    <li class="step-item relative pb-6 group">
+                    <li class="step-item relative pb-4 group">
                         <div class="step-connector" aria-hidden="true"></div>
-                        <button onclick="sendQuickQuery('Tell me about the Voter Registration process.')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about Voter Registration">
-                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
-                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">1</span>
+                        <button aria-expanded="false" aria-controls="panel-step-1" onclick="toggleStepPanel('panel-step-1')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Toggle details for Voter Registration">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-500 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-300 group-hover:text-electric group-focus-visible:text-electric">1</span>
                             </div>
                             <div class="mt-1">
                                 <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Voter Registration</h3>
-                                <p class="text-sm text-gray-400 mt-1">Eligibility and signing up</p>
+                                <p class="text-sm text-gray-300 mt-1">Eligibility and signing up</p>
                             </div>
                         </button>
+                        <div id="panel-step-1" class="hidden mt-3 ml-12 p-4 bg-lightNavy/50 rounded-lg border border-gray-600 text-sm text-gray-200" aria-live="polite">
+                            <p class="mb-2">Registration is required to vote in most states. Requirements vary, but generally include being a U.S. citizen, meeting state residency rules, and being 18 years old on or before Election Day.</p>
+                            <button onclick="sendQuickQuery('Tell me about the Voter Registration process.'); toggleStepPanel('panel-step-1');" class="text-electric hover:text-blue-400 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-electric rounded px-1 -ml-1">Ask AI for more details &rarr;</button>
+                        </div>
                     </li>
 
                     <!-- Step 2 -->
-                    <li class="step-item relative pb-6 group">
+                    <li class="step-item relative pb-4 group">
                         <div class="step-connector" aria-hidden="true"></div>
-                        <button onclick="sendQuickQuery('How do Primary Elections work?')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about Primaries and Caucuses">
-                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
-                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">2</span>
+                        <button aria-expanded="false" aria-controls="panel-step-2" onclick="toggleStepPanel('panel-step-2')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Toggle details for Primaries and Caucuses">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-500 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-300 group-hover:text-electric group-focus-visible:text-electric">2</span>
                             </div>
                             <div class="mt-1">
                                 <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Primaries & Caucuses</h3>
-                                <p class="text-sm text-gray-400 mt-1">Selecting party candidates</p>
+                                <p class="text-sm text-gray-300 mt-1">Selecting party candidates</p>
                             </div>
                         </button>
+                        <div id="panel-step-2" class="hidden mt-3 ml-12 p-4 bg-lightNavy/50 rounded-lg border border-gray-600 text-sm text-gray-200" aria-live="polite">
+                            <p class="mb-2">Before the general election, states hold primaries or caucuses to help political parties choose their nominees for various offices, including the Presidency.</p>
+                            <button onclick="sendQuickQuery('How do Primary Elections work?'); toggleStepPanel('panel-step-2');" class="text-electric hover:text-blue-400 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-electric rounded px-1 -ml-1">Ask AI for more details &rarr;</button>
+                        </div>
                     </li>
 
                     <!-- Step 3 -->
-                    <li class="step-item relative pb-6 group">
+                    <li class="step-item relative pb-4 group">
                         <div class="step-connector" aria-hidden="true"></div>
-                        <button onclick="sendQuickQuery('Explain the General Election process.')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about the General Election">
-                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
-                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">3</span>
+                        <button aria-expanded="false" aria-controls="panel-step-3" onclick="toggleStepPanel('panel-step-3')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Toggle details for General Election">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-500 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-300 group-hover:text-electric group-focus-visible:text-electric">3</span>
                             </div>
                             <div class="mt-1">
                                 <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">General Election</h3>
-                                <p class="text-sm text-gray-400 mt-1">Voting for the final candidates</p>
+                                <p class="text-sm text-gray-300 mt-1">Voting for the final candidates</p>
                             </div>
                         </button>
+                        <div id="panel-step-3" class="hidden mt-3 ml-12 p-4 bg-lightNavy/50 rounded-lg border border-gray-600 text-sm text-gray-200" aria-live="polite">
+                            <p class="mb-2">The general election is where voters make their final choices for local, state, and federal offices. For the President, this vote determines which electors are sent to the Electoral College.</p>
+                            <button onclick="sendQuickQuery('Explain the General Election process.'); toggleStepPanel('panel-step-3');" class="text-electric hover:text-blue-400 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-electric rounded px-1 -ml-1">Ask AI for more details &rarr;</button>
+                        </div>
                     </li>
 
                     <!-- Step 4 -->
-                    <li class="step-item relative pb-6 group">
+                    <li class="step-item relative pb-4 group">
                         <div class="step-connector" aria-hidden="true"></div>
-                        <button onclick="sendQuickQuery('How are election results counted and certified?')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about Results and Certification">
-                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
-                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">4</span>
+                        <button aria-expanded="false" aria-controls="panel-step-4" onclick="toggleStepPanel('panel-step-4')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Toggle details for Results & Certification">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-500 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-300 group-hover:text-electric group-focus-visible:text-electric">4</span>
                             </div>
                             <div class="mt-1">
                                 <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Results & Certification</h3>
-                                <p class="text-sm text-gray-400 mt-1">Counting votes and Electoral College</p>
+                                <p class="text-sm text-gray-300 mt-1">Counting votes and Electoral College</p>
                             </div>
                         </button>
+                        <div id="panel-step-4" class="hidden mt-3 ml-12 p-4 bg-lightNavy/50 rounded-lg border border-gray-600 text-sm text-gray-200" aria-live="polite">
+                            <p class="mb-2">After polls close, votes are counted, verified, and certified by state officials. In presidential elections, the certified results dictate the casting of electoral votes.</p>
+                            <button onclick="sendQuickQuery('How are election results counted and certified?'); toggleStepPanel('panel-step-4');" class="text-electric hover:text-blue-400 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-electric rounded px-1 -ml-1">Ask AI for more details &rarr;</button>
+                        </div>
                     </li>
 
                     <!-- Step 5 -->
                     <li class="step-item relative group">
                         <div class="step-connector" aria-hidden="true"></div>
-                        <button onclick="sendQuickQuery('What happens during the Inauguration?')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Learn about the Inauguration">
-                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-600 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
-                                <span class="text-sm font-bold text-gray-400 group-hover:text-electric group-focus-visible:text-electric">5</span>
+                        <button aria-expanded="false" aria-controls="panel-step-5" onclick="toggleStepPanel('panel-step-5')" class="flex items-start text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-electric rounded-lg p-1 -ml-1 transition-colors hover:bg-lightNavy" aria-label="Toggle details for Inauguration">
+                            <div class="flex-shrink-0 w-9 h-9 rounded-full bg-lightNavy border-2 border-gray-500 flex items-center justify-center group-hover:border-electric group-focus-visible:border-electric transition-colors duration-300 mr-4 relative z-10">
+                                <span class="text-sm font-bold text-gray-300 group-hover:text-electric group-focus-visible:text-electric">5</span>
                             </div>
                             <div class="mt-1">
                                 <h3 class="text-base font-medium text-gray-200 group-hover:text-white group-focus-visible:text-white transition-colors">Inauguration</h3>
-                                <p class="text-sm text-gray-400 mt-1">Taking the oath of office</p>
+                                <p class="text-sm text-gray-300 mt-1">Taking the oath of office</p>
                             </div>
                         </button>
+                        <div id="panel-step-5" class="hidden mt-3 ml-12 p-4 bg-lightNavy/50 rounded-lg border border-gray-600 text-sm text-gray-200" aria-live="polite">
+                            <p class="mb-2">The final step is the Inauguration, usually held on January 20th. The President-elect takes the oath of office and officially assumes their duties.</p>
+                            <button onclick="sendQuickQuery('What happens during the Inauguration?'); toggleStepPanel('panel-step-5');" class="text-electric hover:text-blue-400 hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-electric rounded px-1 -ml-1">Ask AI for more details &rarr;</button>
+                        </div>
                     </li>
                 </ul>
             </nav>
@@ -203,26 +243,26 @@
         <section class="flex-1 flex flex-col bg-darkNavy/50 h-full relative" aria-label="Chat Interface">
             
             <!-- Chat Messages Container -->
-            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 chat-scroll space-y-6" aria-live="polite" aria-atomic="false">
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 md:p-6 chat-scroll space-y-6" role="log" aria-live="polite" aria-atomic="false">
                 <!-- Welcome Message (Injected via JS or hardcoded) -->
-                <div class="flex items-start">
+                <div class="flex items-start" id="welcome-msg">
                     <div class="flex-shrink-0 w-10 h-10 rounded-full bg-electric flex items-center justify-center mr-4 shadow-sm" aria-hidden="true">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <div class="bg-lightNavy text-white rounded-2xl rounded-tl-none px-5 py-4 max-w-[90%] md:max-w-[80%] shadow-lg prose prose-invert">
+                    <div class="bg-lightNavy text-white rounded-2xl rounded-tl-none px-5 py-4 max-w-[90%] md:max-w-[80%] shadow-lg prose prose-invert ai-message-container" tabindex="-1">
                         <p>Welcome to <strong>ElectIQ</strong>! I'm your non-partisan election process assistant. How can I help you understand the democratic process today?</p>
                     </div>
                 </div>
             </div>
 
             <!-- Interaction Area: Quick Actions & Input -->
-            <div class="bg-navy border-t border-lightNavy p-4 z-10 relative">
+            <div class="bg-navy border-t border-lightNavy p-4 z-10 relative flex flex-col">
                 
                 <!-- Quick Actions Carousel -->
                 <nav aria-label="Quick question shortcuts" class="mb-3">
-                    <div class="flex gap-2 overflow-x-auto pb-2 chat-scroll scroll-smooth hide-scrollbar">
+                    <div class="flex gap-2 overflow-x-auto pb-2 chat-scroll hide-scrollbar">
                         <button onclick="sendQuickQuery('How do I register to vote?')" class="whitespace-nowrap px-4 py-2 bg-lightNavy hover:bg-electric text-gray-200 hover:text-white text-sm font-medium rounded-full transition-colors border border-gray-600 hover:border-electric focus:outline-none focus:ring-2 focus:ring-electric" aria-label="Ask: How do I register to vote?">
                             How do I register to vote?
                         </button>
@@ -242,7 +282,7 @@
                 <form id="chat-form" class="flex items-end gap-3" aria-label="Chat input form">
                     <div class="relative flex-1">
                         <label for="chat-input" class="sr-only">Type your question</label>
-                        <textarea id="chat-input" rows="1" class="w-full bg-darkNavy border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-electric focus:ring-2 focus:ring-electric resize-none block" placeholder="Ask a question about the election process..." aria-multiline="true"></textarea>
+                        <textarea id="chat-input" rows="1" class="w-full bg-darkNavy border border-gray-500 rounded-xl px-4 py-3 text-white placeholder-gray-300 focus:outline-none focus:border-electric focus:ring-2 focus:ring-electric resize-none block" placeholder="Ask a question about the election process..." aria-multiline="true"></textarea>
                     </div>
                     <button type="submit" id="send-btn" class="bg-electric hover:bg-blue-600 text-white rounded-xl p-3 h-[48px] w-[48px] flex items-center justify-center transition-colors shadow-md flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-navy focus:ring-electric" aria-label="Send message">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform rotate-90" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -250,6 +290,13 @@
                         </svg>
                     </button>
                 </form>
+
+                <!-- Footer Badge -->
+                <div class="mt-3 text-center" aria-hidden="true">
+                    <span class="inline-flex items-center text-[10px] uppercase tracking-wider text-gray-400 px-2 py-0.5 rounded border border-gray-700/50">
+                        Powered by <span class="font-bold text-gray-300 ml-1">Gemini</span>
+                    </span>
+                </div>
             </div>
         </section>
     </main>
@@ -261,6 +308,40 @@
         const chatInput = document.getElementById('chat-input');
         
         let isProcessing = false;
+
+        // Toggle stepper panel function
+        function toggleStepPanel(panelId) {
+            const panel = document.getElementById(panelId);
+            const button = document.querySelector(\`button[aria-controls="\${panelId}"]\`);
+            
+            if (panel.classList.contains('hidden')) {
+                // Close all other panels first
+                document.querySelectorAll('[id^="panel-step-"]').forEach(p => {
+                    p.classList.add('hidden');
+                });
+                document.querySelectorAll('button[aria-controls^="panel-step-"]').forEach(b => {
+                    b.setAttribute('aria-expanded', 'false');
+                });
+
+                // Open this panel
+                panel.classList.remove('hidden');
+                if (button) button.setAttribute('aria-expanded', 'true');
+            } else {
+                // Close this panel
+                panel.classList.add('hidden');
+                if (button) button.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function clearChat() {
+            // Keep only the welcome message
+            const welcomeMsg = document.getElementById('welcome-msg');
+            chatMessages.innerHTML = '';
+            if (welcomeMsg) {
+                chatMessages.appendChild(welcomeMsg);
+            }
+            chatInput.focus();
+        }
 
         // Auto-resize textarea logic
         chatInput.addEventListener('input', function() {
@@ -323,18 +404,16 @@
                 if (response.ok) {
                     appendBotMessage(data.response);
                 } else {
-                    appendBotMessage(`**Error:** ${data.error || 'Something went wrong processing your request.'}`);
+                    appendBotMessage(\`**Error:** \${data.error || 'Something went wrong processing your request.'}\`);
                 }
             } catch (error) {
                 const loadingEl = document.getElementById(loadingId);
                 if (loadingEl) loadingEl.remove();
                 
-                appendBotMessage(`**Error:** Network error or unable to connect to the server.`);
+                appendBotMessage(\`**Error:** Network error or unable to connect to the server.\`);
                 console.error('API Error:', error);
             } finally {
                 isProcessing = false;
-                // Return focus to input for continuous chatting
-                chatInput.focus();
             }
         }
 
@@ -342,14 +421,14 @@
             const msgContainer = document.createElement('div');
             msgContainer.className = 'flex items-start justify-end w-full';
             
-            // Encode basic HTML to prevent injection since we inject text safely
+            // Encode basic HTML to prevent injection
             const safeText = escapeHTML(text);
             
-            msgContainer.innerHTML = `
+            msgContainer.innerHTML = \`
                 <div class="bg-gray-700 text-white rounded-2xl rounded-tr-none px-5 py-3 max-w-[90%] md:max-w-[75%] shadow-md whitespace-pre-wrap break-words" role="log" aria-label="Your message">
-                    ${safeText}
+                    \${safeText}
                 </div>
-            `;
+            \`;
             chatMessages.appendChild(msgContainer);
             scrollToBottom();
         }
@@ -361,18 +440,24 @@
             // Parse Markdown safely
             const htmlContent = marked.parse(markdownText);
             
-            msgContainer.innerHTML = `
+            msgContainer.innerHTML = \`
                 <div class="flex-shrink-0 w-10 h-10 rounded-full bg-electric flex items-center justify-center mr-4 mt-1 shadow-sm" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <div class="bg-lightNavy text-white rounded-2xl rounded-tl-none px-5 py-4 max-w-[90%] md:max-w-[80%] shadow-lg prose prose-invert w-full overflow-hidden break-words" role="log" aria-label="ElectIQ Response">
-                    ${htmlContent}
+                <div class="bg-lightNavy text-white rounded-2xl rounded-tl-none px-5 py-4 max-w-[90%] md:max-w-[80%] shadow-lg prose prose-invert w-full overflow-hidden break-words ai-message-container" tabindex="-1" role="log" aria-label="ElectIQ Response">
+                    \${htmlContent}
                 </div>
-            `;
+            \`;
             chatMessages.appendChild(msgContainer);
             scrollToBottom();
+            
+            // Ensure focus is moved to new AI message after response loads
+            const addedMessage = msgContainer.querySelector('.ai-message-container');
+            if (addedMessage) {
+                addedMessage.focus();
+            }
         }
 
         function appendLoadingMessage() {
@@ -380,9 +465,9 @@
             const msgContainer = document.createElement('div');
             msgContainer.id = id;
             msgContainer.className = 'flex items-start w-full';
-            msgContainer.setAttribute('aria-live', 'polite');
+            msgContainer.setAttribute('role', 'status');
             
-            msgContainer.innerHTML = `
+            msgContainer.innerHTML = \`
                 <div class="flex-shrink-0 w-10 h-10 rounded-full bg-electric flex items-center justify-center mr-4 mt-1 shadow-sm opacity-80" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -394,7 +479,7 @@
                     <div class="w-2.5 h-2.5 bg-gray-400 typing-dot"></div>
                     <span class="sr-only">Typing response...</span>
                 </div>
-            `;
+            \`;
             chatMessages.appendChild(msgContainer);
             scrollToBottom();
             return id;
